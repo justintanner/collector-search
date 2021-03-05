@@ -4,8 +4,44 @@
   "description": "",
   "main": "src/tuck-collector-search.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ava"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@ava/babel": "^1.0.1",
+    "@babel/cli": "^7.12.17",
+    "@babel/core": "^7.12.17",
+    "@babel/plugin-transform-runtime": "^7.13.8",
+    "@babel/preset-env": "^7.12.17",
+    "@babel/register": "^7.12.13",
+    "@babel/runtime": "^7.12.18",
+    "app-root-path": "^3.0.0",
+    "ava": "^3.15.0",
+    "ava-fast-check": "^4.0.2",
+    "convert-csv-to-json": "^1.3.0",
+    "core-js": "^3.9.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "fast-check": "^2.13.0",
+    "loadash": "^1.0.0",
+    "prettier": "2.2.1"
+  },
+  "ava": {
+    "files": [
+      "tests/*.js"
+    ],
+    "source": [
+      "src/**/*.{js}"
+    ],
+    "babel": true,
+    "require": [
+      "@babel/register",
+      "@babel/plugin-transform-regenerator"
+    ]
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "ss-search": "^1.5.21"
+  }
 }
