@@ -2,7 +2,6 @@ import test from "ava";
 import _ from "lodash";
 import { jsonFixture, jsonFixtureFromCSV } from "./helpers/fixture_helper.js";
 import TuckCollectorSearch from "../src/tuck_collector_search.js";
-import SsSearchWrapper from "../src/ss_search_wrapper.js";
 
 let tcs;
 
@@ -17,7 +16,7 @@ test.before((t) => {
     .without("id", "set_url", "order")
     .value();
 
-  tcs = TuckCollectorSearch(SsSearchWrapper({ documents, searchKeys }));
+  tcs = TuckCollectorSearch({ documents, searchKeys });
 });
 
 test("returns the same results in the same order as postgres for the query BROADSTAIRS", (t) => {
@@ -73,6 +72,17 @@ test("matches records that have a number and in_set without a space", (t) => {
 
   t.is(number, 692);
   t.is(in_set, "03");
+});
+
+test("searches for number ranges", (t) => {
+  const results = tcs.search("number: 9000-9001");
+
+  const numbersInOrder = _.chain(results).map("number").sort().value();
+
+  console.log("numberInOrder", numbersInOrder);
+
+  t.is(numbersInOrder[0], 9000);
+  t.is(numbersInOrder[numbersInOrder.length - 1], 9001);
 });
 
 // test("matches a prefix with dots", (t) => {
