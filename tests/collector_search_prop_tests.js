@@ -1,13 +1,13 @@
 import { testProp, fc } from "ava-fast-check";
 import _ from "lodash";
-import TuckCollectorSearch from "../src/tuck_collector_search.js";
+import CollectorSearch from "../src/collector_search.js";
 import SsSearchWrapper from "../src/ss_search_wrapper";
 
 testProp(
   "Extracting advanced options from a query always returns a string",
   [fc.string()],
   (t, query) => {
-    const tcs = TuckCollectorSearch({ documents: {}, searchKeys: {} });
+    const tcs = CollectorSearch({ documents: {}, searchKeys: {} });
 
     const { remainingQuery, _options } = tcs.extractOptionsFromQuery(query);
 
@@ -19,7 +19,7 @@ testProp(
   "Returns an object no matter what's passed in",
   [fc.falsy()],
   (t, query) => {
-    const tcs = TuckCollectorSearch({ documents: {}, searchKeys: {} });
+    const tcs = CollectorSearch({ documents: {}, searchKeys: {} });
 
     const { remainingQuery, _options } = tcs.extractOptionsFromQuery(query);
 

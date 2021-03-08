@@ -1,7 +1,7 @@
 import _ from "lodash";
 import SsSearchWrapper from "./ss_search_wrapper";
 
-function TuckCollectorSearch(attrs) {
+function CollectorSearch(attrs) {
   let { documents, searchKeys, searchWrapper, perPage } = attrs;
 
   if (_.isEmpty(searchWrapper)) {
@@ -59,4 +59,4 @@ function TuckCollectorSearch(attrs) {
   });
 }
 
-export default TuckCollectorSearch;
+export default CollectorSearch;

@@ -1,9 +1,9 @@
 import test from "ava";
 import _ from "lodash";
-import TuckCollectorSearch from "../src/tuck_collector_search.js";
+import CollectorSearch from "../src/collector_search.js";
 
 test("extracts advanced options from a search query", (t) => {
-  const tcs = TuckCollectorSearch({ documents: {}, searchKeys: {} });
+  const tcs = CollectorSearch({ documents: {}, searchKeys: {} });
 
   const { remainingQuery, options } = tcs.extractOptionsFromQuery(
     "abc number: 1-101 prefix:A"

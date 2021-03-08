@@ -1,8 +1,8 @@
 {
-  "name": "tuck-collector-search",
+  "name": "collector-search",
   "version": "1.0.0",
   "description": "",
-  "main": "src/tuck-collector-search.js",
+  "main": "src/collector-search.js",
   "scripts": {
     "test": "ava"
   },

@@ -1,7 +1,7 @@
 import test from "ava";
 import _ from "lodash";
 import { jsonFixture, jsonFixtureFromCSV } from "./helpers/fixture_helper.js";
-import TuckCollectorSearch from "../src/tuck_collector_search.js";
+import CollectorSearch from "../src/collector_search.js";
 
 let tcs;
 
@@ -16,7 +16,7 @@ test.before((t) => {
     .without("id", "set_url", "order")
     .value();
 
-  tcs = TuckCollectorSearch({ documents, searchKeys, perPage: 300 });
+  tcs = CollectorSearch({ documents, searchKeys, perPage: 300 });
 });
 
 test("returns the same results in the same order as postgres for the query BROADSTAIRS", (t) => {
