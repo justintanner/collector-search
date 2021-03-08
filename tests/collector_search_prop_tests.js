@@ -7,28 +7,24 @@ testProp(
   "Extracting advanced options from a query always returns a string",
   [fc.string()],
   (t, query) => {
-    const tcs = CollectorSearch({ documents: {}, searchKeys: {} });
+    const cs = CollectorSearch({ documents: {}, searchKeys: {} });
 
-    const { remainingQuery, _options } = tcs.extractOptionsFromQuery(query);
+    const { remainingQuery } = cs.extractOptionsFromQuery(query);
 
     t.true(_.isString(remainingQuery));
   }
 );
 
-testProp(
-  "Returns an object no matter what's passed in",
-  [fc.falsy()],
-  (t, query) => {
-    const tcs = CollectorSearch({ documents: {}, searchKeys: {} });
+testProp("Always returns some query", [fc.falsy()], (t, query) => {
+  const cs = CollectorSearch({ documents: {}, searchKeys: {} });
 
-    const { remainingQuery, _options } = tcs.extractOptionsFromQuery(query);
+  const { remainingQuery } = cs.extractOptionsFromQuery(query);
 
-    t.is(remainingQuery, query);
-  }
-);
+  t.is(remainingQuery, query);
+});
 
 testProp(
-  "Returns between 200 and the max number documents available",
+  "The amount of results is between 200 and the max number of documents",
   [fc.integer(), fc.integer()],
   (t, page, perPage) => {
     // Dummy array because we only care about the total results.
@@ -44,7 +40,7 @@ testProp(
 );
 
 testProp(
-  "Sorts results by the order field",
+  "Results are ordered by the order field",
   [fc.integer(), fc.integer()],
   (t, page, perPage) => {
     // A fake collection of documents in reverse order, 9000, 8999, etc..

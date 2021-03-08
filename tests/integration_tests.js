@@ -3,7 +3,7 @@ import _ from "lodash";
 import { jsonFixture, jsonFixtureFromCSV } from "./helpers/fixture_helper.js";
 import CollectorSearch from "../src/collector_search.js";
 
-let tcs;
+let cs;
 
 test.before((t) => {
   let documents = jsonFixture("db.json");
@@ -16,13 +16,13 @@ test.before((t) => {
     .without("id", "set_url", "order")
     .value();
 
-  tcs = CollectorSearch({ documents, searchKeys, perPage: 300 });
+  cs = CollectorSearch({ documents, searchKeys, perPage: 300 });
 });
 
 test("returns the same results in the same order as postgres for the query BROADSTAIRS", (t) => {
   const queryAndIds = jsonFixtureFromCSV("BROADSTAIRS.csv")[0];
 
-  const results = tcs.search(queryAndIds.query);
+  const results = cs.search(queryAndIds.query);
 
   const actualIds = _.map(results, (result) => _.parseInt(result.id));
   const expectedIds = _.map(queryAndIds.ids.split(","), _.parseInt);
@@ -33,7 +33,7 @@ test("returns the same results in the same order as postgres for the query BROAD
 test("returns the same results in the same order as postgres for the query Dachshund", (t) => {
   const queryAndIds = jsonFixtureFromCSV("Dachshund.csv")[0];
 
-  const results = tcs.search(queryAndIds.query);
+  const results = cs.search(queryAndIds.query);
 
   const actualIds = _.map(results, (result) => _.parseInt(result.id));
   const expectedIds = _.map(queryAndIds.ids.split(","), _.parseInt);
@@ -44,7 +44,7 @@ test("returns the same results in the same order as postgres for the query Dachs
 test("returns the same results in the same order as postgres for the query Minehead", (t) => {
   const queryAndIds = jsonFixtureFromCSV("Minehead.csv")[0];
 
-  const results = tcs.search(queryAndIds.query);
+  const results = cs.search(queryAndIds.query);
 
   const actualIds = _.map(results, (result) => _.parseInt(result.id));
   const expectedIds = _.map(queryAndIds.ids.split(","), _.parseInt);
@@ -53,7 +53,7 @@ test("returns the same results in the same order as postgres for the query Mineh
 });
 
 test("matches records that have a prefix and number without a space", (t) => {
-  const results = tcs.search("C4056");
+  const results = cs.search("C4056");
 
   const prefixes = _.map(results, "prefix");
   const numbers = _.map(results, "number");
@@ -63,7 +63,7 @@ test("matches records that have a prefix and number without a space", (t) => {
 });
 
 test("matches records that have a number and in_set without a space", (t) => {
-  const results = tcs.search("69203");
+  const results = cs.search("69203");
 
   t.is(results.length, 1);
 
@@ -75,7 +75,7 @@ test("matches records that have a number and in_set without a space", (t) => {
 });
 
 test("searches for number ranges", (t) => {
-  const results = tcs.search("number: 9000-9001");
+  const results = cs.search("number: 9000-9001");
 
   const numbersInOrder = _.chain(results).map("number").sort().value();
 
