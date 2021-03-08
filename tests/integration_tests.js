@@ -16,7 +16,7 @@ test.before((t) => {
     .without("id", "set_url", "order")
     .value();
 
-  tcs = TuckCollectorSearch({ documents, searchKeys });
+  tcs = TuckCollectorSearch({ documents, searchKeys, perPage: 300 });
 });
 
 test("returns the same results in the same order as postgres for the query BROADSTAIRS", (t) => {
@@ -79,15 +79,6 @@ test("searches for number ranges", (t) => {
 
   const numbersInOrder = _.chain(results).map("number").sort().value();
 
-  console.log("numberInOrder", numbersInOrder);
-
   t.is(numbersInOrder[0], 9000);
   t.is(numbersInOrder[numbersInOrder.length - 1], 9001);
 });
-
-// test("matches a prefix with dots", (t) => {
-//   const results = tcs.search("B.K.W.I.");
-//
-//   t.is(results.length, 1);
-//   t.is(results.prefix, "B.K.W.I");
-// });

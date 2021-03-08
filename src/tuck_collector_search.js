@@ -2,53 +2,60 @@ import _ from "lodash";
 import SsSearchWrapper from "./ss_search_wrapper";
 
 function TuckCollectorSearch(attrs) {
-  let { documents, searchKeys, searchWrapper } = attrs;
+  let { documents, searchKeys, searchWrapper, perPage } = attrs;
 
-  if (!_.isFunction(searchWrapper)) {
-    searchWrapper = SsSearchWrapper({ documents, searchKeys });
+  if (_.isEmpty(searchWrapper)) {
+    searchWrapper = SsSearchWrapper({
+      documents,
+      searchKeys,
+      perPage: perPage,
+    });
   }
 
-  const extractRangeFromQuery = (query) => {
-    let extractedQuery, startRange, endRange;
+  const search = (query, page) => {
+    const { remainingQuery, options } = extractOptionsFromQuery(query);
 
-    if (!_.isString(query)) {
-      return { extractedQuery: query };
+    if (!_.isEmpty(options)) {
+      return searchWrapper.advancedSearch(remainingQuery, page, options);
     }
 
-    extractedQuery = query;
-
-    const rangeRegex = /number:\s*([0-9]+)\s*-\s*([0-9]+)/;
-    const matches = query.match(rangeRegex);
-
-    if (matches && matches.length >= 2) {
-      startRange = _.parseInt(matches[1]);
-      endRange = _.parseInt(matches[2]);
-
-      extractedQuery = _.chain(query).replace(rangeRegex, "").trim().value();
-    }
-
-    return { extractedQuery, startRange, endRange };
+    return searchWrapper.search(remainingQuery, page);
   };
 
-  const search = (query) => {
-    const { extractedQuery, startRange, endRange } = extractRangeFromQuery(
-      query
-    );
+  const extractOptionsFromQuery = (query) => {
+    let remainingQuery,
+      options = {};
 
-    if (startRange && endRange) {
-      return searchWrapper.rangeSearch(extractedQuery, startRange, endRange);
+    remainingQuery = query;
+
+    if (!_.isString(remainingQuery)) {
+      return { remainingQuery, options };
     }
 
-    if (_.isEmpty(extractedQuery)) {
-      return documents;
-    }
+    const optionRegex = /(prefix|number):\s*([^\s]*)/g;
+    const matches = query.match(optionRegex);
 
-    return searchWrapper.search(extractedQuery);
+    _.forEach(matches, (match) => {
+      const fieldAndValue = _.chain(match)
+        .replace(/\s/g, "")
+        .split(":")
+        .value();
+
+      options[fieldAndValue[0]] = fieldAndValue[1];
+
+      remainingQuery = _.chain(remainingQuery)
+        .replace(match, "  ")
+        .replace(/\s{2,}/g, " ")
+        .trim()
+        .value();
+    });
+
+    return { remainingQuery, options };
   };
 
   return Object.freeze({
     search,
-    extractRangeFromQuery,
+    extractOptionsFromQuery,
   });
 }
 
