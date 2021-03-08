@@ -2,9 +2,10 @@
   "name": "collector-search",
   "version": "1.0.0",
   "description": "",
-  "main": "src/collector-search.js",
+  "main": "dist/collector_search.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "build": "babel src --out-dir dist"
   },
   "author": "",
   "license": "ISC",
