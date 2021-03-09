@@ -32,7 +32,7 @@ function CollectorSearch(attrs) {
       return { remainingQuery, options };
     }
 
-    const optionRegex = /(prefix|number):\s*([^\s]*)/g;
+    const optionRegex = /(prefix|number):\s*[^\s]*/g;
     const matches = query.match(optionRegex);
 
     _.forEach(matches, (match) => {
