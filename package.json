@@ -2,10 +2,10 @@
   "name": "collector-search",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/collector_search.js",
+  "main": "dist/collector_search.cjs.js",
   "scripts": {
-    "test": "ava",
-    "build": "babel src --out-dir dist"
+    "test": "npx ava",
+    "build": "npx rollup -c"
   },
   "author": "",
   "license": "ISC",
@@ -13,10 +13,13 @@
     "@ava/babel": "^1.0.1",
     "@babel/cli": "^7.12.17",
     "@babel/core": "^7.12.17",
-    "@babel/plugin-transform-runtime": "^7.13.8",
+    "@babel/plugin-transform-runtime": "^7.13.9",
     "@babel/preset-env": "^7.12.17",
     "@babel/register": "^7.12.13",
-    "@babel/runtime": "^7.12.18",
+    "@babel/runtime": "^7.13.9",
+    "@rollup/plugin-babel": "^5.3.0",
+    "@rollup/plugin-commonjs": "^17.1.0",
+    "@rollup/plugin-node-resolve": "^11.2.0",
     "app-root-path": "^3.0.0",
     "ava": "^3.15.0",
     "ava-fast-check": "^4.0.2",
@@ -25,8 +28,8 @@
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-prettier": "^3.3.1",
     "fast-check": "^2.13.0",
-    "loadash": "^1.0.0",
-    "prettier": "2.2.1"
+    "prettier": "2.2.1",
+    "rollup": "^2.41.0"
   },
   "ava": {
     "files": [
