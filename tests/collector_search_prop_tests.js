@@ -1,7 +1,6 @@
 import { testProp, fc } from "ava-fast-check";
 import _ from "lodash";
 import CollectorSearch from "../src/collector_search.js";
-import SsSearchWrapper from "../src/ss_search_wrapper";
 
 testProp(
   "Extracting advanced options from a query always returns a string",
@@ -9,7 +8,7 @@ testProp(
   (t, query) => {
     const cs = CollectorSearch({ documents: {}, searchKeys: {} });
 
-    const { remainingQuery } = cs.extractOptionsFromQuery(query);
+    const { remainingQuery } = cs.__extractOptionsFromQuery(query);
 
     t.true(_.isString(remainingQuery));
   }
@@ -18,7 +17,7 @@ testProp(
 testProp("Always returns some query", [fc.falsy()], (t, query) => {
   const cs = CollectorSearch({ documents: {}, searchKeys: {} });
 
-  const { remainingQuery } = cs.extractOptionsFromQuery(query);
+  const { remainingQuery } = cs.__extractOptionsFromQuery(query);
 
   t.is(remainingQuery, query);
 });
@@ -30,7 +29,7 @@ testProp(
     // Dummy array because we only care about the total results.
     const documents = _.range(123456);
 
-    const ssw = SsSearchWrapper(documents);
+    const ssw = CollectorSearch(documents);
 
     const results = ssw.__sortAndPaginate(documents, page, perPage);
 
@@ -48,7 +47,7 @@ testProp(
       return { order: i };
     });
 
-    const ssw = SsSearchWrapper(documents);
+    const ssw = CollectorSearch(documents);
 
     const results = ssw.__sortAndPaginate(documents, page, perPage);
 
