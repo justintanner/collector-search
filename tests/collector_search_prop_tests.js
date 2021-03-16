@@ -6,7 +6,7 @@ testProp(
   "Extracting advanced options from a query always returns a string",
   [fc.string()],
   (t, query) => {
-    const cs = CollectorSearch({ documents: {}, searchKeys: {} });
+    const cs = CollectorSearch({ documents: [], searchKeys: [] });
 
     const { remainingQuery } = cs.__extractOptionsFromQuery(query);
 
@@ -15,7 +15,7 @@ testProp(
 );
 
 testProp("Always returns some query", [fc.falsy()], (t, query) => {
-  const cs = CollectorSearch({ documents: {}, searchKeys: {} });
+  const cs = CollectorSearch({ documents: [], searchKeys: [] });
 
   const { remainingQuery } = cs.__extractOptionsFromQuery(query);
 
@@ -29,7 +29,7 @@ testProp(
     // Dummy array because we only care about the total results.
     const documents = _.range(123456);
 
-    const ssw = CollectorSearch(documents);
+    const ssw = CollectorSearch({ documents });
 
     const results = ssw.__sortAndPaginate(documents, page, perPage);
 
@@ -47,7 +47,7 @@ testProp(
       return { order: i };
     });
 
-    const ssw = CollectorSearch(documents);
+    const ssw = CollectorSearch({ documents });
 
     const results = ssw.__sortAndPaginate(documents, page, perPage);
 

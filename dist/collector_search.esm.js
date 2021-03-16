@@ -17214,6 +17214,10 @@ function CollectorSearch(attrs) {
         remainingQuery = _extractOptionsFromQu.remainingQuery,
         options = _extractOptionsFromQu.options;
 
+    if (indexBlank()) {
+      injectIndexIntoDocuments();
+    }
+
     if (!lodash.isEmpty(options)) {
       return advancedSearch(remainingQuery, page, options);
     }
@@ -17222,7 +17226,7 @@ function CollectorSearch(attrs) {
       return documents;
     }
 
-    var results = SsSearch(documents, remainingQuery);
+    var results = filterDocuments(documents, remainingQuery);
     return sortAndPaginate(results, page, perPage);
   };
 
@@ -17233,8 +17237,45 @@ function CollectorSearch(attrs) {
       matchingDocuments = lodash.filter(matchingDocuments, filterFunction);
     });
 
-    var results = SsSearch(matchingDocuments, query);
+    var results = filterDocuments(matchingDocuments, query);
     return sortAndPaginate(results, page, perPage);
+  };
+
+  var filterDocuments = function filterDocuments(searchDocuments, query) {
+    var queryTokens = tokenize(query);
+
+    if (lodash.isEmpty(query)) {
+      return searchDocuments;
+    }
+
+    return lodash.filter(searchDocuments, function (document) {
+      return lodash.some(queryTokens, function (token) {
+        return document.cs_index.indexOf(token) > -1;
+      });
+    });
+  };
+
+  var injectIndexIntoDocuments = function injectIndexIntoDocuments() {
+    return documents.forEach(function (document) {
+      if (!lodash.isObject(document)) {
+        return;
+      } // TODO: Extract method.
+
+
+      var index = lodash.map(document, function (value, key) {
+        if (searchKeys.includes(key)) {
+          return normalizeText(value);
+        }
+
+        return "";
+      }).join("");
+
+      document.cs_index = index;
+    });
+  };
+
+  var indexBlank = function indexBlank() {
+    return !lodash.isString(documents[0].cs_index);
   };
 
   var extractOptionsFromQuery = function extractOptionsFromQuery(query) {
@@ -17292,6 +17333,14 @@ function CollectorSearch(attrs) {
     }
 
     return page;
+  };
+
+  var normalizeText = function normalizeText(text) {
+    return lodash.deburr(text).replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().trim();
+  };
+
+  var tokenize = function tokenize(query) {
+    return normalizeText(query).match(/\w+/gim) || [];
   }; // TODO: Refactor this function for readability.
 
 
@@ -17311,41 +17360,6 @@ function CollectorSearch(attrs) {
           return document.number === value;
         };
       }
-    });
-  }; // TODO: Move these three methods up.
-
-
-  var normalizeText = function normalizeText(text) {
-    return lodash.deburr(text).replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().trim();
-  };
-
-  var tokenize = function tokenize(query) {
-    return normalizeText(query).match(/\w+/gim) || [];
-  };
-
-  var indexDocuments = function indexDocuments(searchDocuments, keys) {
-    return lodash.map(searchDocuments, function (document) {
-      return lodash.map(document, function (value, key) {
-        if (keys.includes(key)) {
-          return normalizeText(value);
-        }
-      }).join("");
-    });
-  }; // TODO: Rename and refactor
-
-
-  var SsSearch = function SsSearch(searchDocuments, query) {
-    var queryTokens = tokenize(query);
-
-    if (lodash.isEmpty(query)) {
-      return searchDocuments;
-    }
-
-    var docsIndex = indexDocuments(searchDocuments, searchKeys);
-    return lodash.filter(searchDocuments, function (_document, i) {
-      return lodash.some(queryTokens, function (token) {
-        return docsIndex[i].indexOf(token) > -1;
-      });
     });
   };
 

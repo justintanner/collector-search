@@ -3,8 +3,17 @@ import _ from "lodash";
 function CollectorSearch(attrs) {
   let { documents, searchKeys, perPage } = attrs;
 
+  if (!_.isArray(documents)) {
+    console.log("documents", documents);
+    throw "ERROR: documents is not an array.";
+  }
+
   const search = (query, page) => {
     const { remainingQuery, options } = extractOptionsFromQuery(query);
+
+    if (indexBlank()) {
+      injectIndexIntoDocuments(documents, searchKeys);
+    }
 
     if (!_.isEmpty(options)) {
       return advancedSearch(remainingQuery, page, options);
@@ -14,7 +23,7 @@ function CollectorSearch(attrs) {
       return documents;
     }
 
-    const results = SsSearch(documents, remainingQuery);
+    const results = filterDocuments(documents, remainingQuery);
 
     return sortAndPaginate(results, page, perPage);
   };
@@ -26,9 +35,27 @@ function CollectorSearch(attrs) {
       matchingDocuments = _.filter(matchingDocuments, filterFunction);
     });
 
-    const results = SsSearch(matchingDocuments, query);
+    const results = filterDocuments(matchingDocuments, query);
 
     return sortAndPaginate(results, page, perPage);
+  };
+
+  const filterDocuments = (searchDocuments, query) => {
+    const queryTokens = tokenize(query);
+
+    if (_.isEmpty(query)) {
+      return searchDocuments;
+    }
+
+    return _.filter(searchDocuments, (document) => {
+      return _.some(queryTokens, (token) => {
+        return document.cs_index.indexOf(token) > -1;
+      });
+    });
+  };
+
+  const indexBlank = () => {
+    return !_.isString(documents[0].cs_index);
   };
 
   const extractOptionsFromQuery = (query) => {
@@ -93,6 +120,33 @@ function CollectorSearch(attrs) {
     return page;
   };
 
+  const normalizeText = (text) => {
+    return _.deburr(text)
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase()
+      .trim();
+  };
+
+  const injectIndexIntoDocuments = () => {
+    return documents.forEach((document) => {
+      document.cs_index = createDocumentIndex(document);
+    });
+  };
+
+  const createDocumentIndex = (document) => {
+    return _.map(document, (value, key) => {
+      if (searchKeys.includes(key)) {
+        return normalizeText(value);
+      }
+
+      return "";
+    }).join("");
+  };
+
+  const tokenize = (query) => {
+    return normalizeText(query).match(/\w+/gim) || [];
+  };
+
   // TODO: Refactor this function for readability.
   const advancedFilterFunctions = (query, options) => {
     return _.map(options, (value, key) => {
@@ -113,45 +167,6 @@ function CollectorSearch(attrs) {
           return document.number === value;
         };
       }
-    });
-  };
-
-  // TODO: Move these three methods up.
-  const normalizeText = (text) => {
-    return _.deburr(text)
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLocaleLowerCase()
-      .trim();
-  };
-
-  const tokenize = (query) => {
-    return normalizeText(query).match(/\w+/gim) || [];
-  };
-
-  const indexDocuments = (searchDocuments, keys) => {
-    return _.map(searchDocuments, (document) => {
-      return _.map(document, (value, key) => {
-        if (keys.includes(key)) {
-          return normalizeText(value);
-        }
-      }).join("");
-    });
-  };
-
-  // TODO: Rename and refactor
-  const SsSearch = (searchDocuments, query) => {
-    const queryTokens = tokenize(query);
-
-    if (_.isEmpty(query)) {
-      return searchDocuments;
-    }
-
-    const docsIndex = indexDocuments(searchDocuments, searchKeys);
-
-    return _.filter(searchDocuments, (_document, i) => {
-      return _.some(queryTokens, (token) => {
-        return docsIndex[i].indexOf(token) > -1;
-      });
     });
   };
 
