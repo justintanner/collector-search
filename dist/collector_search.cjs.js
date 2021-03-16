@@ -17211,6 +17211,10 @@ function CollectorSearch(attrs) {
       searchKeys = attrs.searchKeys,
       perPage = attrs.perPage;
 
+  if (!lodash.isArray(documents)) {
+    throw "ERROR: documents is not an array.";
+  }
+
   var search = function search(query, page) {
     var _extractOptionsFromQu = extractOptionsFromQuery(query),
         remainingQuery = _extractOptionsFromQu.remainingQuery,
@@ -17220,59 +17224,26 @@ function CollectorSearch(attrs) {
       injectIndexIntoDocuments();
     }
 
-    if (!lodash.isEmpty(options)) {
-      return advancedSearch(remainingQuery, page, options);
-    }
-
-    if (lodash.isEmpty(query)) {
-      return documents;
-    }
-
-    var results = filterDocuments(documents, remainingQuery);
-    return sortAndPaginate(results, page, perPage);
+    var filteredDocuments = filterDocuments(documents, remainingQuery, options);
+    return sortAndPaginate(filteredDocuments, page, perPage);
   };
 
-  var advancedSearch = function advancedSearch(query, page, options) {
-    var matchingDocuments = documents;
+  var filterDocuments = function filterDocuments(searchDocuments, query, options) {
+    var queryTokens = tokenize(query);
+    var matchingDocuments = searchDocuments;
 
     lodash.forEach(advancedFilterFunctions(query, options), function (filterFunction) {
       matchingDocuments = lodash.filter(matchingDocuments, filterFunction);
     });
 
-    var results = filterDocuments(matchingDocuments, query);
-    return sortAndPaginate(results, page, perPage);
-  };
-
-  var filterDocuments = function filterDocuments(searchDocuments, query) {
-    var queryTokens = tokenize(query);
-
     if (lodash.isEmpty(query)) {
-      return searchDocuments;
+      return matchingDocuments;
     }
 
-    return lodash.filter(searchDocuments, function (document) {
+    return lodash.filter(matchingDocuments, function (document) {
       return lodash.some(queryTokens, function (token) {
         return document.cs_index.indexOf(token) > -1;
       });
-    });
-  };
-
-  var injectIndexIntoDocuments = function injectIndexIntoDocuments() {
-    return documents.forEach(function (document) {
-      if (!lodash.isObject(document)) {
-        return;
-      } // TODO: Extract method.
-
-
-      var index = lodash.map(document, function (value, key) {
-        if (searchKeys.includes(key)) {
-          return normalizeText(value);
-        }
-
-        return "";
-      }).join("");
-
-      document.cs_index = index;
     });
   };
 
@@ -17341,6 +17312,22 @@ function CollectorSearch(attrs) {
     return lodash.deburr(text).replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().trim();
   };
 
+  var injectIndexIntoDocuments = function injectIndexIntoDocuments() {
+    return documents.forEach(function (document) {
+      document.cs_index = createDocumentIndex(document);
+    });
+  };
+
+  var createDocumentIndex = function createDocumentIndex(document) {
+    return lodash.map(document, function (value, key) {
+      if (searchKeys.includes(key)) {
+        return normalizeText(value);
+      }
+
+      return "";
+    }).join("");
+  };
+
   var tokenize = function tokenize(query) {
     return normalizeText(query).match(/\w+/gim) || [];
   }; // TODO: Refactor this function for readability.
@@ -17367,7 +17354,6 @@ function CollectorSearch(attrs) {
 
   return Object.freeze({
     search: search,
-    advancedSearch: advancedSearch,
     __extractOptionsFromQuery: extractOptionsFromQuery,
     __sortAndPaginate: sortAndPaginate
   });

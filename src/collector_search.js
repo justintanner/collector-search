@@ -4,7 +4,6 @@ function CollectorSearch(attrs) {
   let { documents, searchKeys, perPage } = attrs;
 
   if (!_.isArray(documents)) {
-    console.log("documents", documents);
     throw "ERROR: documents is not an array.";
   }
 
@@ -15,39 +14,28 @@ function CollectorSearch(attrs) {
       injectIndexIntoDocuments(documents, searchKeys);
     }
 
-    if (!_.isEmpty(options)) {
-      return advancedSearch(remainingQuery, page, options);
-    }
+    const filteredDocuments = filterDocuments(
+      documents,
+      remainingQuery,
+      options
+    );
 
-    if (_.isEmpty(query)) {
-      return documents;
-    }
-
-    const results = filterDocuments(documents, remainingQuery);
-
-    return sortAndPaginate(results, page, perPage);
+    return sortAndPaginate(filteredDocuments, page, perPage);
   };
 
-  const advancedSearch = (query, page, options) => {
-    let matchingDocuments = documents;
+  const filterDocuments = (searchDocuments, query, options) => {
+    const queryTokens = tokenize(query);
+    let matchingDocuments = searchDocuments;
 
     _.forEach(advancedFilterFunctions(query, options), (filterFunction) => {
       matchingDocuments = _.filter(matchingDocuments, filterFunction);
     });
 
-    const results = filterDocuments(matchingDocuments, query);
-
-    return sortAndPaginate(results, page, perPage);
-  };
-
-  const filterDocuments = (searchDocuments, query) => {
-    const queryTokens = tokenize(query);
-
     if (_.isEmpty(query)) {
-      return searchDocuments;
+      return matchingDocuments;
     }
 
-    return _.filter(searchDocuments, (document) => {
+    return _.filter(matchingDocuments, (document) => {
       return _.some(queryTokens, (token) => {
         return document.cs_index.indexOf(token) > -1;
       });
@@ -172,7 +160,6 @@ function CollectorSearch(attrs) {
 
   return Object.freeze({
     search,
-    advancedSearch,
     __extractOptionsFromQuery: extractOptionsFromQuery,
     __sortAndPaginate: sortAndPaginate,
   });
