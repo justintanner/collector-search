@@ -4,6 +4,7 @@
   "description": "",
   "main": "dist/collector_search.cjs.js",
   "scripts": {
+    "pretest": "npx rollup -c",
     "test": "npx ava",
     "build": "npx rollup -c"
   },

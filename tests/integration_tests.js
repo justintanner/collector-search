@@ -1,7 +1,7 @@
 import test from "ava";
 import _ from "lodash";
 import { jsonFixture, jsonFixtureFromCSV } from "./helpers/fixture_helper.js";
-import CollectorSearch from "../dist/collector_search.umd.js";
+import CollectorSearch from "../src/collector_search.js";
 
 let cs;
 
