@@ -44,13 +44,13 @@ testProp(
   (t, page, perPage) => {
     // A fake collection of documents in reverse order, 9000, 8999, etc..
     const documents = _.map(_.rangeRight(1, 9001), (i) => {
-      return { order: i };
+      return { position: i };
     });
 
     const ssw = CollectorSearch({ documents });
 
     const results = ssw.__sortAndPaginate(documents, page, perPage);
 
-    t.true(_.first(results).order < _.last(results).order);
+    t.true(_.first(results).position < _.last(results).position);
   }
 );

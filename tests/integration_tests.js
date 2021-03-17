@@ -14,6 +14,7 @@ test.before((t) => {
     documents,
     keysToExclude: ["id", "url", "set_url", "order"],
     perPage: 300,
+    orderBy: "order",
   });
 });
 

@@ -1,7 +1,7 @@
 import _ from "lodash";
 
 const CollectorSearch = (attrs) => {
-  let { documents, keysToExclude, perPage } = attrs;
+  let { documents, keysToExclude, perPage, orderBy } = attrs;
 
   if (!_.isArray(documents)) {
     throw "ERROR: Invalid documents (not an array).";
@@ -14,6 +14,10 @@ const CollectorSearch = (attrs) => {
     keysToExclude.push("id");
   } else {
     throw "ERROR: Invalid keysToExclude";
+  }
+
+  if (_.isEmpty(orderBy) || !_.isString(orderBy)) {
+    orderBy = "position";
   }
 
   const search = (query, page) => {
@@ -91,7 +95,7 @@ const CollectorSearch = (attrs) => {
     const pageNumber = normalizePageNumber(page, totalPerPage, results.length);
 
     return _.chain(results)
-      .sortBy("order")
+      .sortBy(orderBy)
       .drop((pageNumber - 1) * totalPerPage)
       .take(totalPerPage)
       .value();
