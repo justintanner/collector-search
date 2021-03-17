@@ -1,17 +1,26 @@
 import _ from "lodash";
 
-function CollectorSearch(attrs) {
-  let { documents, searchKeys, perPage } = attrs;
+const CollectorSearch = (attrs) => {
+  let { documents, keysToExclude, perPage } = attrs;
 
   if (!_.isArray(documents)) {
-    throw "ERROR: documents is not an array.";
+    throw "ERROR: Invalid documents (not an array).";
+  }
+
+  if (_.isEmpty(keysToExclude)) {
+    keysToExclude = ["cs_index", "id"];
+  } else if (_.isArray(keysToExclude)) {
+    keysToExclude.push("cs_index");
+    keysToExclude.push("id");
+  } else {
+    throw "ERROR: Invalid keysToExclude";
   }
 
   const search = (query, page) => {
     const { remainingQuery, options } = extractOptionsFromQuery(query);
 
     if (indexBlank()) {
-      injectIndexIntoDocuments(documents, searchKeys);
+      injectIndexIntoDocuments();
     }
 
     const filteredDocuments = filterDocuments(
@@ -24,10 +33,10 @@ function CollectorSearch(attrs) {
   };
 
   const filterDocuments = (searchDocuments, query, options) => {
-    const queryTokens = tokenize(query);
     let matchingDocuments = searchDocuments;
+    const queryTokens = tokenize(query);
 
-    _.forEach(advancedFilterFunctions(query, options), (filterFunction) => {
+    _.each(advancedFilterFunctions(options), (filterFunction) => {
       matchingDocuments = _.filter(matchingDocuments, filterFunction);
     });
 
@@ -36,7 +45,7 @@ function CollectorSearch(attrs) {
     }
 
     return _.filter(matchingDocuments, (document) => {
-      return _.some(queryTokens, (token) => {
+      return _.every(queryTokens, (token) => {
         return document.cs_index.indexOf(token) > -1;
       });
     });
@@ -59,7 +68,7 @@ function CollectorSearch(attrs) {
     const optionRegex = /(prefix|number):\s*[^\s]*/g;
     const matches = query.match(optionRegex);
 
-    _.forEach(matches, (match) => {
+    _.each(matches, (match) => {
       const fieldAndValue = match.replace(/\s/g, "").split(":");
 
       options[fieldAndValue[0]] = fieldAndValue[1];
@@ -116,14 +125,14 @@ function CollectorSearch(attrs) {
   };
 
   const injectIndexIntoDocuments = () => {
-    return documents.forEach((document) => {
+    documents.forEach((document) => {
       document.cs_index = createDocumentIndex(document);
     });
   };
 
   const createDocumentIndex = (document) => {
     return _.map(document, (value, key) => {
-      if (searchKeys.includes(key)) {
+      if (!keysToExclude.includes(key)) {
         return normalizeText(value);
       }
 
@@ -135,27 +144,33 @@ function CollectorSearch(attrs) {
     return normalizeText(query).match(/\w+/gim) || [];
   };
 
-  // TODO: Refactor this function for readability.
-  const advancedFilterFunctions = (query, options) => {
+  const advancedFilterFunctions = (options) => {
+    const validKeys = _.reject(Object.keys(documents[0]), keysToExclude);
+
     return _.map(options, (value, key) => {
-      if (key === "prefix") {
-        return (document) => {
-          return document.prefix === value;
-        };
-      } else if (key === "number" && value.includes("-")) {
+      if (isNumberRange(value)) {
         return (document) => {
           const startEnd = value.split("-");
-          return (
-            document.number >= _.parseInt(startEnd[0]) &&
-            document.number <= _.parseInt(startEnd[1])
-          );
+          const start = _.parseInt(startEnd[0]);
+          const end = _.parseInt(startEnd[1]);
+          const number = _.parseInt(document.number);
+
+          if (start <= 0 || end <= 0 || number <= 0) {
+            return false;
+          }
+
+          return number >= start && number <= end;
         };
-      } else if (key === "number") {
+      } else if (validKeys.includes(key)) {
         return (document) => {
-          return document.number === value;
+          return normalizeText(document[key]) === normalizeText(value);
         };
       }
     });
+  };
+
+  const isNumberRange = (string) => {
+    return /[0-9]+\s*-\s*[0-9]+/.test(string);
   };
 
   return Object.freeze({
@@ -163,6 +178,6 @@ function CollectorSearch(attrs) {
     __extractOptionsFromQuery: extractOptionsFromQuery,
     __sortAndPaginate: sortAndPaginate,
   });
-}
+};
 
 export default CollectorSearch;

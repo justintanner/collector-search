@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <script src="../../dist/collector_search.umd.js"></script>
+  </head>
+
+  <body>
+    <script type="text/javascript">
+      const documents = [{text: 'a'}, {text: 'b'}];
+      const cs = CollectorSearch({ documents: documents, perPage: 300 });
+      console.log(cs.search('a'));
+    </script>
+    
+  </body>
+</html>

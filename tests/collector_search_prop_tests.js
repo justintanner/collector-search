@@ -6,7 +6,7 @@ testProp(
   "Extracting advanced options from a query always returns a string",
   [fc.string()],
   (t, query) => {
-    const cs = CollectorSearch({ documents: [], searchKeys: [] });
+    const cs = CollectorSearch({ documents: [] });
 
     const { remainingQuery } = cs.__extractOptionsFromQuery(query);
 
@@ -15,7 +15,7 @@ testProp(
 );
 
 testProp("Always returns some query", [fc.falsy()], (t, query) => {
-  const cs = CollectorSearch({ documents: [], searchKeys: [] });
+  const cs = CollectorSearch({ documents: [] });
 
   const { remainingQuery } = cs.__extractOptionsFromQuery(query);
 

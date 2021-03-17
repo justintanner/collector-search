@@ -10,13 +10,11 @@ test.before((t) => {
 
   documents = _.sortBy(documents, "order");
 
-  const searchKeys = _.chain(documents)
-    .first()
-    .keysIn()
-    .without("id", "set_url", "order")
-    .value();
-
-  cs = CollectorSearch({ documents, searchKeys, perPage: 300 });
+  cs = CollectorSearch({
+    documents,
+    keysToExclude: ["id", "url", "set_url", "order"],
+    perPage: 300,
+  });
 });
 
 test("returns the same results in the same order as postgres for the query BROADSTAIRS", (t) => {
@@ -81,4 +79,11 @@ test("searches for number ranges", (t) => {
 
   t.is(numbersInOrder[0], 9000);
   t.is(numbersInOrder[numbersInOrder.length - 1], 9001);
+});
+
+test("matches more than one token", (t) => {
+  const results = cs.search("wishes C4056 best");
+
+  t.is(results.length, 1);
+  t.is(results[0].id, 1570);
 });

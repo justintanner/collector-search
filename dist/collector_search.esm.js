@@ -17206,11 +17206,19 @@ var lodash = createCommonjsModule(function (module, exports) {
 
 function CollectorSearch(attrs) {
   var documents = attrs.documents,
-      searchKeys = attrs.searchKeys,
+      keysToExclude = attrs.keysToExclude,
       perPage = attrs.perPage;
 
   if (!lodash.isArray(documents)) {
-    throw "ERROR: documents is not an array.";
+    throw "ERROR: Invalid documents (not an array).";
+  }
+
+  if (lodash.isEmpty(keysToExclude)) {
+    keysToExclude = ["cs_index"];
+  } else if (lodash.isArray(keysToExclude)) {
+    keysToExclude.push("cs_index");
+  } else {
+    throw "ERROR: Invalid keysToExclude";
   }
 
   var search = function search(query, page) {
@@ -17227,8 +17235,8 @@ function CollectorSearch(attrs) {
   };
 
   var filterDocuments = function filterDocuments(searchDocuments, query, options) {
-    var queryTokens = tokenize(query);
     var matchingDocuments = searchDocuments;
+    var queryTokens = tokenize(query);
 
     lodash.forEach(advancedFilterFunctions(query, options), function (filterFunction) {
       matchingDocuments = lodash.filter(matchingDocuments, filterFunction);
@@ -17311,14 +17319,14 @@ function CollectorSearch(attrs) {
   };
 
   var injectIndexIntoDocuments = function injectIndexIntoDocuments() {
-    return documents.forEach(function (document) {
+    documents.forEach(function (document) {
       document.cs_index = createDocumentIndex(document);
     });
   };
 
   var createDocumentIndex = function createDocumentIndex(document) {
     return lodash.map(document, function (value, key) {
-      if (searchKeys.includes(key)) {
+      if (!keysToExclude.includes(key)) {
         return normalizeText(value);
       }
 
@@ -17328,23 +17336,27 @@ function CollectorSearch(attrs) {
 
   var tokenize = function tokenize(query) {
     return normalizeText(query).match(/\w+/gim) || [];
-  }; // TODO: Refactor this function for readability.
-
+  };
 
   var advancedFilterFunctions = function advancedFilterFunctions(query, options) {
+    var validKeys = lodash.reject(Object.keys(documents[0]), keysToExclude);
+
     return lodash.map(options, function (value, key) {
-      if (key === "prefix") {
-        return function (document) {
-          return document.prefix === value;
-        };
-      } else if (key === "number" && value.includes("-")) {
+      if (key === "number" && value.includes("-")) {
         return function (document) {
           var startEnd = value.split("-");
-          return document.number >= lodash.parseInt(startEnd[0]) && document.number <= lodash.parseInt(startEnd[1]);
+
+          var start = lodash.parseInt(startEnd[0]);
+
+          var end = lodash.parseInt(startEnd[1]);
+
+          var number = lodash.parseInt(document.number);
+
+          return number >= start && number <= end;
         };
-      } else if (key === "number") {
+      } else if (validKeys.includes(key)) {
         return function (document) {
-          return document.number === value;
+          return normalizeText(document[key]) === normalizeText(value);
         };
       }
     });

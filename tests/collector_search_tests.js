@@ -3,7 +3,7 @@ import _ from "lodash";
 import CollectorSearch from "../src/collector_search.js";
 
 test("extracts advanced options from a search query", (t) => {
-  const cs = CollectorSearch({ documents: [], searchKeys: [] });
+  const cs = CollectorSearch({ documents: [] });
 
   const { remainingQuery, options } = cs.__extractOptionsFromQuery(
     "abc number: 1-101 prefix:A"
