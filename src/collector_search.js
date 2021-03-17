@@ -153,7 +153,7 @@ const CollectorSearch = (attrs) => {
           const startEnd = value.split("-");
           const start = _.parseInt(startEnd[0]);
           const end = _.parseInt(startEnd[1]);
-          const number = _.parseInt(document.number);
+          const number = _.parseInt(document[key]);
 
           if (start <= 0 || end <= 0 || number <= 0) {
             return false;
