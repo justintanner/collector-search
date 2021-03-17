@@ -8,9 +8,9 @@ const CollectorSearch = (attrs) => {
   }
 
   if (_.isEmpty(keysToExclude)) {
-    keysToExclude = ["cs_index", "id"];
+    keysToExclude = ["collector_search_index", "id"];
   } else if (_.isArray(keysToExclude)) {
-    keysToExclude.push("cs_index");
+    keysToExclude.push("collector_search_index");
     keysToExclude.push("id");
   } else {
     throw "ERROR: Invalid keysToExclude";
@@ -46,13 +46,17 @@ const CollectorSearch = (attrs) => {
 
     return _.filter(matchingDocuments, (document) => {
       return _.every(queryTokens, (token) => {
-        return document.cs_index.indexOf(token) > -1;
+        return documentContainsToken(document, token);
       });
     });
   };
 
+  const documentContainsToken = (document, token) => {
+    return document.collector_seach_index.indexOf(token) > -1;
+  };
+
   const indexBlank = () => {
-    return !_.isString(documents[0].cs_index);
+    return !_.isString(documents[0].collector_seach_index);
   };
 
   const extractOptionsFromQuery = (query) => {
@@ -126,7 +130,7 @@ const CollectorSearch = (attrs) => {
 
   const injectIndexIntoDocuments = () => {
     documents.forEach((document) => {
-      document.cs_index = createDocumentIndex(document);
+      document.collector_seach_index = createDocumentIndex(document);
     });
   };
 
@@ -147,26 +151,29 @@ const CollectorSearch = (attrs) => {
   const advancedFilterFunctions = (options) => {
     const validKeys = _.reject(Object.keys(documents[0]), keysToExclude);
 
-    return _.map(options, (value, key) => {
-      if (isNumberRange(value)) {
-        return (document) => {
-          const startEnd = value.split("-");
-          const start = _.parseInt(startEnd[0]);
-          const end = _.parseInt(startEnd[1]);
-          const number = _.parseInt(document[key]);
+    return _.chain(options)
+      .map((value, key) => {
+        if (isNumberRange(value)) {
+          return (document) => {
+            const startEnd = value.split("-");
+            const start = _.parseInt(startEnd[0]);
+            const end = _.parseInt(startEnd[1]);
+            const number = _.parseInt(document[key]);
 
-          if (start <= 0 || end <= 0 || number <= 0) {
-            return false;
-          }
+            if (start <= 0 || end <= 0 || number <= 0) {
+              return false;
+            }
 
-          return number >= start && number <= end;
-        };
-      } else if (validKeys.includes(key)) {
-        return (document) => {
-          return normalizeText(document[key]) === normalizeText(value);
-        };
-      }
-    });
+            return number >= start && number <= end;
+          };
+        } else if (validKeys.includes(key)) {
+          return (document) => {
+            return normalizeText(document[key]) === normalizeText(value);
+          };
+        }
+      })
+      .compact()
+      .value();
   };
 
   const isNumberRange = (string) => {
