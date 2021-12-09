@@ -133,7 +133,7 @@ const CollectorSearch = (attrs) => {
   };
 
   const injectIndexIntoDocuments = () => {
-    documents.forEach((document) => {
+    _.each(documents, (document) => {
       document.collector_seach_index = createDocumentIndex(document);
     });
   };

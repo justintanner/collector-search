@@ -6,17 +6,7 @@ export default {
   input: "src/collector_search.js",
   output: [
     {
-      file: "dist/collector_search.cjs.js",
-      format: "cjs",
-      exports: "default",
-    },
-    {
-      file: "dist/collector_search.esm.js",
-      format: "esm",
-      exports: "default",
-    },
-    {
-      file: "dist/collector_search.umd.js",
+      file: "dist/collector_search.js",
       format: "umd",
       name: "CollectorSearch",
       exports: "default",
