@@ -1,15 +1,15 @@
 {
   "name": "collector-search",
   "version": "1.0.0",
-  "description": "",
-  "main": "dist/collector_search.cjs.js",
+  "description": "A library for searching ordered JSON data",
+  "main": "dist/collector_search.js",
   "scripts": {
     "pretest": "npx rollup -c",
     "test": "npx ava",
     "build": "npx rollup -c"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@ava/babel": "^1.0.1",
     "@babel/cli": "^7.12.17",
