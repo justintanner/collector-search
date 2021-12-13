@@ -13,3 +13,12 @@ test("extracts advanced options from a search query", (t) => {
   t.is(options.number, "1-101");
   t.is(options.prefix, "A");
 });
+
+test("perPage limits the amount of results returned", (t) => {
+  let documents = new Array(21).fill({});
+
+  const cs = CollectorSearch({ documents: documents, perPage: 9 });
+  const results = cs.search("");
+
+  t.is(results.length, 9);
+});

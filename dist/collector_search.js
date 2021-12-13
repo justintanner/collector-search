@@ -17230,7 +17230,7 @@
 	  }
 
 	  if (lodash.isEmpty(orderBy) || !lodash.isString(orderBy)) {
-	    orderBy = "position";
+	    orderBy = "order";
 	  }
 
 	  var search = function search(query, page) {
@@ -17307,8 +17307,8 @@
 	  };
 
 	  var normalizePerPage = function normalizePerPage(perPage, totalResults) {
-	    if (!lodash.isInteger(perPage) || perPage < 200) {
-	      return 200;
+	    if (!lodash.isInteger(perPage) || perPage <= 0) {
+	      return 100;
 	    }
 
 	    if (perPage > totalResults) {

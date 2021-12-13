@@ -1,7 +1,7 @@
 import _ from "lodash";
 
 const CollectorSearch = (attrs) => {
-  let { documents, keysToExclude, perPage, orderBy } = attrs;
+  let {documents, keysToExclude, perPage, orderBy} = attrs;
 
   if (!_.isArray(documents)) {
     throw "ERROR: Invalid documents (not an array).";
@@ -17,11 +17,11 @@ const CollectorSearch = (attrs) => {
   }
 
   if (_.isEmpty(orderBy) || !_.isString(orderBy)) {
-    orderBy = "position";
+    orderBy = "order";
   }
 
   const search = (query, page) => {
-    const { remainingQuery, options } = extractOptionsFromQuery(query);
+    const {remainingQuery, options} = extractOptionsFromQuery(query);
 
     if (indexBlank()) {
       injectIndexIntoDocuments();
@@ -70,7 +70,7 @@ const CollectorSearch = (attrs) => {
     remainingQuery = query;
 
     if (!_.isString(remainingQuery)) {
-      return { remainingQuery, options };
+      return {remainingQuery, options};
     }
 
     const optionRegex = /(prefix|number):\s*[^\s]*/g;
@@ -87,7 +87,7 @@ const CollectorSearch = (attrs) => {
         .trim();
     });
 
-    return { remainingQuery, options };
+    return {remainingQuery, options};
   };
 
   const sortAndPaginate = (results, page, perPage) => {
@@ -102,8 +102,8 @@ const CollectorSearch = (attrs) => {
   };
 
   const normalizePerPage = (perPage, totalResults) => {
-    if (!_.isInteger(perPage) || perPage < 200) {
-      return 200;
+    if (!_.isInteger(perPage) || perPage <= 0) {
+      return 100;
     }
 
     if (perPage > totalResults) {

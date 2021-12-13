@@ -23,34 +23,17 @@ testProp("Always returns some query", [fc.falsy()], (t, query) => {
 });
 
 testProp(
-  "The amount of results is between 200 and the max number of documents",
-  [fc.integer(), fc.integer()],
-  (t, page, perPage) => {
-    // Dummy array because we only care about the total results.
-    const documents = _.range(123456);
-
-    const ssw = CollectorSearch({ documents });
-
-    const results = ssw.__sortAndPaginate(documents, page, perPage);
-
-    t.true(results.length >= 200);
-    t.true(results.length <= documents.length);
-  }
-);
-
-testProp(
   "Results are ordered by the order field",
   [fc.integer(), fc.integer()],
   (t, page, perPage) => {
     // A fake collection of documents in reverse order, 9000, 8999, etc..
     const documents = _.map(_.rangeRight(1, 9001), (i) => {
-      return { position: i };
+      return { order: i };
     });
 
-    const ssw = CollectorSearch({ documents });
+    const cs = CollectorSearch({ documents });
+    const results = cs.__sortAndPaginate(documents, page, perPage);
 
-    const results = ssw.__sortAndPaginate(documents, page, perPage);
-
-    t.true(_.first(results).position < _.last(results).position);
+    t.true(_.first(results).order <= _.last(results).order);
   }
 );
