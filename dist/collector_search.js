@@ -17231,6 +17231,7 @@
 
 	  if (lodash.isEmpty(orderBy) || !lodash.isString(orderBy)) {
 	    orderBy = "order";
+	    keysToExclude.push(orderBy);
 	  }
 
 	  var search = function search(query, page) {
@@ -17238,12 +17239,14 @@
 	        remainingQuery = _extractOptionsFromQu.remainingQuery,
 	        options = _extractOptionsFromQu.options;
 
-	    if (indexBlank()) {
-	      injectIndexIntoDocuments();
-	    }
-
 	    var filteredDocuments = filterDocuments(documents, remainingQuery, options);
 	    return sortAndPaginate(filteredDocuments, page, perPage);
+	  };
+
+	  var injectIndex = function injectIndex() {
+	    return lodash.each(documents, function (document) {
+	      document.collector_search_index = createDocumentIndex(document);
+	    });
 	  };
 
 	  var filterDocuments = function filterDocuments(searchDocuments, query, options) {
@@ -17258,19 +17261,21 @@
 	      return matchingDocuments;
 	    }
 
-	    return lodash.filter(matchingDocuments, function (document) {
+	    var filterByMatchesFunc = function filterByMatchesFunc(document) {
 	      return lodash.every(queryTokens, function (token) {
 	        return documentContainsToken(document, token);
 	      });
-	    });
+	    };
+
+	    return lodash.filter(matchingDocuments, filterByMatchesFunc);
 	  };
 
 	  var documentContainsToken = function documentContainsToken(document, token) {
-	    return document.collector_seach_index.indexOf(token) > -1;
-	  };
+	    if (!lodash.has(document, "collector_search_index")) {
+	      document.collector_search_index = createDocumentIndex(document);
+	    }
 
-	  var indexBlank = function indexBlank() {
-	    return !lodash.isString(documents[0].collector_seach_index);
+	    return document.collector_search_index.indexOf(token) > -1;
 	  };
 
 	  var extractOptionsFromQuery = function extractOptionsFromQuery(query) {
@@ -17334,12 +17339,6 @@
 	    return lodash.deburr(text).replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().trim();
 	  };
 
-	  var injectIndexIntoDocuments = function injectIndexIntoDocuments() {
-	    lodash.each(documents, function (document) {
-	      document.collector_seach_index = createDocumentIndex(document);
-	    });
-	  };
-
 	  var createDocumentIndex = function createDocumentIndex(document) {
 	    return lodash.map(document, function (value, key) {
 	      if (!keysToExclude.includes(key)) {
@@ -17388,6 +17387,7 @@
 
 	  return Object.freeze({
 	    search: search,
+	    injectIndex: injectIndex,
 	    __extractOptionsFromQuery: extractOptionsFromQuery,
 	    __sortAndPaginate: sortAndPaginate
 	  });

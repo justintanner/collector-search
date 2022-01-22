@@ -1,7 +1,7 @@
 import _ from "lodash";
 
 const CollectorSearch = (attrs) => {
-  let {documents, keysToExclude, perPage, orderBy} = attrs;
+  let { documents, keysToExclude, perPage, orderBy } = attrs;
 
   if (!_.isArray(documents)) {
     throw "ERROR: Invalid documents (not an array).";
@@ -18,14 +18,11 @@ const CollectorSearch = (attrs) => {
 
   if (_.isEmpty(orderBy) || !_.isString(orderBy)) {
     orderBy = "order";
+    keysToExclude.push(orderBy);
   }
 
   const search = (query, page) => {
-    const {remainingQuery, options} = extractOptionsFromQuery(query);
-
-    if (indexBlank()) {
-      injectIndexIntoDocuments();
-    }
+    const { remainingQuery, options } = extractOptionsFromQuery(query);
 
     const filteredDocuments = filterDocuments(
       documents,
@@ -34,6 +31,12 @@ const CollectorSearch = (attrs) => {
     );
 
     return sortAndPaginate(filteredDocuments, page, perPage);
+  };
+
+  const injectIndex = () => {
+    return _.each(documents, (document) => {
+      document.collector_search_index = createDocumentIndex(document);
+    });
   };
 
   const filterDocuments = (searchDocuments, query, options) => {
@@ -48,19 +51,21 @@ const CollectorSearch = (attrs) => {
       return matchingDocuments;
     }
 
-    return _.filter(matchingDocuments, (document) => {
+    const filterByMatchesFunc = (document) => {
       return _.every(queryTokens, (token) => {
         return documentContainsToken(document, token);
       });
-    });
+    };
+
+    return _.filter(matchingDocuments, filterByMatchesFunc);
   };
 
   const documentContainsToken = (document, token) => {
-    return document.collector_seach_index.indexOf(token) > -1;
-  };
+    if (!_.has(document, "collector_search_index")) {
+      document.collector_search_index = createDocumentIndex(document);
+    }
 
-  const indexBlank = () => {
-    return !_.isString(documents[0].collector_seach_index);
+    return document.collector_search_index.indexOf(token) > -1;
   };
 
   const extractOptionsFromQuery = (query) => {
@@ -70,7 +75,7 @@ const CollectorSearch = (attrs) => {
     remainingQuery = query;
 
     if (!_.isString(remainingQuery)) {
-      return {remainingQuery, options};
+      return { remainingQuery, options };
     }
 
     const optionRegex = /(prefix|number):\s*[^\s]*/g;
@@ -87,7 +92,7 @@ const CollectorSearch = (attrs) => {
         .trim();
     });
 
-    return {remainingQuery, options};
+    return { remainingQuery, options };
   };
 
   const sortAndPaginate = (results, page, perPage) => {
@@ -130,12 +135,6 @@ const CollectorSearch = (attrs) => {
       .replace(/[\u0300-\u036f]/g, "")
       .toLocaleLowerCase()
       .trim();
-  };
-
-  const injectIndexIntoDocuments = () => {
-    _.each(documents, (document) => {
-      document.collector_seach_index = createDocumentIndex(document);
-    });
   };
 
   const createDocumentIndex = (document) => {
@@ -186,6 +185,7 @@ const CollectorSearch = (attrs) => {
 
   return Object.freeze({
     search,
+    injectIndex,
     __extractOptionsFromQuery: extractOptionsFromQuery,
     __sortAndPaginate: sortAndPaginate,
   });

@@ -8,7 +8,11 @@
     "test": "npx ava",
     "build": "npx rollup -c"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justintanner/collector-search"
+  },
+  "author": "Justin Tanner",
   "license": "MIT",
   "devDependencies": {
     "@ava/babel": "^1.0.1",
